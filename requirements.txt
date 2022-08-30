@@ -1,0 +1,4 @@
+nose
+sphinx
+torch==1.7.0
+methodtools==0.4.2
