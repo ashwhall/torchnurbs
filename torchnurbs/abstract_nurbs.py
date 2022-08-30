@@ -17,6 +17,7 @@ class AbstractNurbs(nn.Module, metaclass=ABCMeta):
     _multithread = True
 
     _ndim = None
+
     def __init__(self,
                  degree,
                  control_points,
@@ -32,7 +33,7 @@ class AbstractNurbs(nn.Module, metaclass=ABCMeta):
         self.set_knot_vector(knot_vector)
         self.set_eval_delta(eval_delta)
         self.normalised = False
-        self.control_points_tensor = None # If exists, is used instead of self.control_points
+        self.control_points_tensor = None  # If exists, is used instead of self.control_points
 
     def to_dict(self):
         return {
@@ -105,10 +106,13 @@ class AbstractNurbs(nn.Module, metaclass=ABCMeta):
         if knot_vector is None:
             # Generate a knot vector for each
             knot_vector = tuple(
-                generate_knot_vector(self.degree[i], self.control_points.shape[i], dtype=self._dtype, device=self._device)
+                generate_knot_vector(
+                    self.degree[i], self.control_points.shape[i], dtype=self._dtype, device=self._device)
                 for i in torch.arange(self.param_dimensions())
             )
         else:
+            if not isinstance(knot_vector, tuple):
+                knot_vector = (knot_vector,)
             knot_vector = tuple(
                 to_tensor(dim_knot, dtype=self._dtype, device=self._device)
                 for dim_knot in knot_vector
@@ -136,11 +140,13 @@ class AbstractNurbs(nn.Module, metaclass=ABCMeta):
         self.eval_delta = eval_delta
 
         # Build a linspace in [0, 1] for each of the evaluation deltas
-        eval_parameters = tuple(torch.linspace(0, 1, int(1 / delta) + 1, dtype=self._dtype, device=self._device) for delta in eval_delta)
+        eval_parameters = tuple(torch.linspace(0, 1, int(1 / delta) + 1,
+                                dtype=self._dtype, device=self._device) for delta in eval_delta)
         self.set_eval_parameters(eval_parameters)
 
     def set_eval_parameters(self, eval_parameters):
-        self.eval_parameters = tuple(to_tensor(t, dtype=self._dtype, device=self._device) for t in eval_parameters)
+        self.eval_parameters = tuple(
+            to_tensor(t, dtype=self._dtype, device=self._device) for t in eval_parameters)
 
     def set_control_points(self, control_points):
         control_points = to_tensor(control_points, dtype=self._dtype, device=self._device)
@@ -194,7 +200,6 @@ class AbstractNurbs(nn.Module, metaclass=ABCMeta):
         areas = (s * (s - side_a) * (s - side_b) * (s - side_c)).sqrt()
         return areas.sum()
 
-
     @lru_cache(maxsize=2)
     def _get_basis_functions_cached(self, degree, knot_vector, spans, eval_parameters, num_control_points):
         # This functions runs on the CPU as it's more efficient, and rarely called
@@ -223,7 +228,8 @@ class AbstractNurbs(nn.Module, metaclass=ABCMeta):
 
     def _get_spans(self, eval_parameters):
         return tuple(
-            self._get_spans_cached(self.degree, dim_knot, self.control_points, dim_eval_parameters, dim)
+            self._get_spans_cached(self.degree, dim_knot, self.control_points,
+                                   dim_eval_parameters, dim)
             for dim, (dim_knot, dim_eval_parameters) in enumerate(zip(self.knot_vector, eval_parameters))
         )
 

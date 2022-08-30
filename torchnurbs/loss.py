@@ -65,7 +65,6 @@ class ClosestPointLoss(nn.Module):
         return self.combine(torch.cat(dists))
 
 
-
 class RegLoss(nn.Module):
     def __init__(self, initial_outputs, whitening_num_pcs=None):
         super().__init__()
@@ -85,6 +84,7 @@ class PerSurfaceRegLoss(nn.Module):
     For each surface, MSE between the self->self distance mat of the original control points and the
     learnt control points.
     """
+
     def __init__(self, initial_surfaces, reduce_method="mean"):
         super().__init__()
         self.original_distance_matrices = self.compute_distance_matrices(initial_surfaces).detach()
@@ -171,6 +171,7 @@ class ParameterRegLoss(nn.Module):
     The parameters of the surfaces provided in forward have the same done, then the loss is
     MSE between the initial parameters and these new ones.
     """
+
     def __init__(self, initial_surfaces, reduce_method="mean"):
         super().__init__()
         self.initial_params = self.get_normalised_params(initial_surfaces).detach()
@@ -194,8 +195,8 @@ class ParameterRegLoss(nn.Module):
 class NeighbourLoss(nn.Module):
     def __init__(self, initial_surfaces, num_neighbours=3, reduce_method="mean"):
         super().__init__()
-        # TODO: Should this use eval points or control points?
-        self.neighbour_dist_indices = self.get_neighbour_indices(initial_surfaces, num_neighbours).detach()
+        self.neighbour_dist_indices = self.get_neighbour_indices(
+            initial_surfaces, num_neighbours).detach()
         self.original_neighbour_distances = self.get_neighbour_distances(initial_surfaces).detach()
         self.loss_func = nn.MSELoss(reduction=reduce_method)
 
@@ -229,6 +230,7 @@ class TangentialLoss(nn.Module):
     The loss is the the MSE between the original tangential coordinates and those of the control
     points during optimisation.
     """
+
     def __init__(self, initial_surfaces, reduce_method="mean"):
         super().__init__()
         self.mats = tuple(mat.detach() for mat in self.get_change_of_basis_mats(initial_surfaces))
@@ -285,7 +287,6 @@ class TriangleNormalLoss(nn.Module):
         surf_normals = torch.cat(surf_normals)
         return F.normalize(surf_normals, dim=-1)
 
-
     def compute_tri_normals_single(self, surf):
         import numpy as np
         data_grid = surf.control_points
@@ -332,6 +333,7 @@ class TriangleNormalLoss(nn.Module):
 class SimpleDistanceLoss(nn.Module):
     """The summed L2 distance from each point to its nearest"""
     """Not possible due to memory constraints"""
+
     def forward(self, from_points, to_points):
         dist_mat = _compute_dist_mat(from_points, to_points)
         dist_mat = dist_mat.min(1)[0]
@@ -341,6 +343,7 @@ class SimpleDistanceLoss(nn.Module):
 
 class DistLoss(nn.Module):
     """BAD"""
+
     def __init__(self, direction):
         super().__init__()
         if direction == "cloud2nearest":
@@ -384,14 +387,15 @@ class L2ParameterNorm(nn.Module):
     def forward(self, transform_parameters):
         return (transform_parameters ** 2).sum()
 
+
 class L1ParameterNorm(nn.Module):
     def forward(self, transform_parameters):
         return transform_parameters.abs().sum()
 
+
 if __name__ == "__main__":
     import numpy as np
     import torch
-
 
     print(SimpleDistanceLoss()(torch.zeros(5, 2), torch.zeros(3, 2)).shape)
 

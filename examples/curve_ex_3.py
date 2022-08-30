@@ -1,3 +1,4 @@
+import time
 import torchnurbs as tn
 import torch
 
@@ -8,29 +9,22 @@ control_points = torch.tensor([
     [3, 7],
     [5, 3],
     [6, 7],
-    [8, 10]
+    [8, 10],
+    [9, 5]
 ], dtype=torch.float32)
-print("========")
-# control_points = torch.rand((5000, 2), dtype=torch.float32) * 10
+print('========')
 degree = 2
 knot_vector = torch.tensor([
-    0, 1, 2, 3, 3, 5, 6, 7
-]).float()[None]
-knot_vector = tn.utils.generate_knot_vector(torch.tensor(degree), len(control_points))
-print(knot_vector)
-# knot_vector[4] = knot_vector[5]
-# knot_vector[3] = knot_vector[4]
-# knot_vector[6] = knot_vector[5]
-knot_vector = torch.tensor([[0.0000, 0.0000, 0.1, 0.3333, 0.6666, 1.0000, 1.0000, 1.0000]])
-print(knot_vector)
+    0, 0, 0, 3, 3, 5, 8, 8, 8
+]).float()
 c = tn.Curve(
     degree=degree,
     control_points=control_points,
     knot_vector=knot_vector,
     eval_delta=0.03
 )
+print(c.knot_vector)
 print('Eval params:', c.eval_parameters[0].shape)
-import time
 start = time.time()
 steps = 1
 for _ in range(steps):
@@ -41,7 +35,12 @@ print(steps / (time.time() - start))
 
 points = points.T.detach().cpu().numpy()
 print(points.shape)
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    print('matplotlib not installed')
+    exit(0)
 
 plt.plot(*control_points.T, 'g*')
 plt.plot(*points, label='Hello!')

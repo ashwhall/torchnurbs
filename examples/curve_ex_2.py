@@ -1,3 +1,6 @@
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import time
 import torchnurbs as tn
 import torch
 
@@ -22,7 +25,6 @@ c = tn.Curve(
     eval_delta=0.1
 )
 print('Eval params:', c.eval_parameters[0].shape)
-import time
 start = time.time()
 steps = 1
 for _ in range(steps):
@@ -33,8 +35,8 @@ print(steps / (time.time() - start))
 
 points = points.T.detach().cpu().numpy()
 print(points.shape)
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
+
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
